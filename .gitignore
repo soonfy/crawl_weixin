@@ -1,0 +1,10 @@
+/main/
+/node_modules/
+/typings/
+/input/
+
+/config.json
+/package-lock.json
+
+/logs/
+/temp/
