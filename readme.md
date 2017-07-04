@@ -12,7 +12,7 @@ config.json
 
 ## ensure weixin
   1. ready  
-    > txt 文件，每一行是微信号或者微信文章链接  
+  txt 文件，每一行是微信号或者微信文章链接  
 
   2. run  
   ```
