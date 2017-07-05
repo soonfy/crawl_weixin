@@ -102,15 +102,12 @@ const crawl_user_username = async (username) => {
   }
 }
 
-const crawl_biz_uri = async (uri) => {
+const crawl_user_uri = async (uri) => {
   try {
-    console.log(`crawl biz by uri.`);
-    let reg_biz = /var\s*biz\s*=\s*\"(.*)\"\s*\|\|\s*\"(.*)\"\;/;
+    console.log(`crawl user by uri.`);
     console.log(uri);
+    let reg_biz = /var\s*biz\s*=\s*\"(.*)\"\s*\|\|\s*\"(.*)\"\;/;
     let match = uri.match(/^https?\:\/\/mp\.weixin\.qq\.com\/s\?\_\_biz\=([\w\d=]+)\&/);
-    if (match) {
-      return match[1];
-    }
     let options = {
       uri,
       method: 'GET',
@@ -124,8 +121,19 @@ const crawl_biz_uri = async (uri) => {
     // console.log(body);
     match = body.match(reg_biz);
     // console.log(match);
-    let biz = match[1].trim() + match[2].trim();
-    return biz;
+    let _id = match[1].trim() + match[2].trim();
+    let $ = cheerio.load(body);
+    let name = $('.profile_nickname').text().trim();
+    let username, intro;
+    let labels = $('.profile_meta_label');
+    labels.map((i, v) => {
+      if ($(v).text().includes('微信号')) {
+        username = $(v).next().text().trim();
+      } else if ($(v).text().includes('功能介绍')) {
+        intro = $(v).next().text().trim();
+      }
+    })
+    return { _id, username, name, intro };
   } catch (error) {
     console.error(error);
   }
@@ -137,7 +145,8 @@ const crawl_biz_username = async (username) => {
     let user = await crawl_user_username(username);
     // console.log(user);
     if (user) {
-      user._id = await crawl_biz_uri(user.articleuri || user.useruri);
+      let temp = await crawl_user_uri(user.articleuri || user.useruri);
+      user = Object.assign(user, temp);
     } else {
       console.error(`sogou weixin no ${username}`);
       return;
@@ -156,6 +165,6 @@ const crawl_biz_username = async (username) => {
 // crawl_biz_username('rmrbwx');
 
 export {
-  crawl_biz_uri,
+  crawl_user_uri,
   crawl_biz_username
 }

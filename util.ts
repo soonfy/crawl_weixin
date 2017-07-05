@@ -19,4 +19,20 @@ const parse_input = (file_weixin) => {
   }
 }
 
-export { parse_input }
+const sleep = async (s = 20) => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 1000 * s);
+  })
+}
+
+const attr = async (object) => {
+  let temp = {};
+  for (let pro in object) {
+    if (object[pro]) {
+      temp[pro] = object[pro];
+    }
+  }
+  return temp;
+}
+
+export { parse_input, sleep, attr }

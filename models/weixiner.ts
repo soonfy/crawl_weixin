@@ -23,18 +23,17 @@ const weixiner = new Schema({
   },
 
   // crawler
-  // 最近采集状态
-  crawled_at: {
-    type: Date,
-    default: Date.now() - 1000 * 60 * 60 * 24,
-  },
-  // 采集状态
   crawled_status: {
     type: Number,
-    default: 0,
+  },
+  crawled_at: {
+    type: Date,
   },
 
   // gsdata crawler
+  gs_id: {                  //  crawl gsdata id
+    type: String,
+  },
   gs_crawled_status: {      //  crawl gsdata status
     type: Number,
   },
@@ -43,6 +42,9 @@ const weixiner = new Schema({
   },
 
   // newrank crawler
+  nr_id: {                  //  crawl newrank id
+    type: String,
+  },
   nr_crawled_status: {      //  crawl newrank status
     type: Number,
   },
