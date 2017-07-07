@@ -13,7 +13,7 @@ const start = async () => {
     console.log(Config);
     let argvs = process.argv.slice(2);
     if (argvs.length === 0) {
-      console.error(`缺少其他参数。 file path...`);
+      console.error(`缺少其他参数。 file name...`);
       process.exit();
     }
     let file_weixin = argvs[0];
@@ -29,14 +29,14 @@ const start = async () => {
         user = await SogouCrawler.crawl_biz_username(weixin);
       }
       if (user && user._id) {
-        user = await Util.attr(user);
         console.log(user);
         let _weixin = await Weixiner.findOne({ _id: user._id });
         if (!_weixin) {
-          console.log('weixin already has, update.');
-          // _weixin = await Weixiner.findByIdAndUpdate(user._id, { $set: user }, { new: true });
+          console.log('weixin already exist, update.');
+          _weixin = await Weixiner.findByIdAndUpdate(user._id, { $set: user }, { new: true });
           console.log(_weixin);
         } else {
+          console.log('weixin not exist, insert.');
           user.created_at = new Date();
           user.crawled_status = 0;
           user.crawled_at = Date.now() - OFFSET;
@@ -62,14 +62,13 @@ const start = async () => {
             user.nr_crawled_status = -1;
             user.nr_crawled_at = new Date();
           }
-          console.log(user);
-          // _weixin = await Weixiner.findByIdAndUpdate(user._id, { $set: user }, { new: true });
-          console.log('weixin insert.');
+          _weixin = await Weixiner.findByIdAndUpdate(user._id, { $set: user }, { new: true });
         }
         console.log(_weixin);
+        console.log('ensure weixin success.');
       } else {
         console.error(`[ensure] ${weixin} no find user.`);
-        // process.exit();
+        process.exit();
       }
     }
     console.log('===========================');

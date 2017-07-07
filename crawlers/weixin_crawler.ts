@@ -1,10 +1,16 @@
 import * as url from 'url';
 import * as rp from 'request-promise';
-import * as moment from 'moment';
 import * as cheerio from 'cheerio';
 
 import * as Util from '../util';
 
+/**
+ * 
+ * @description crawl weixin content
+ * input: article -> uri, biz, mid, idx, sn
+ * output: article -> title, content
+ * 
+ */
 const crawl_content = async (article) => {
   try {
     if (!article.uri) {
@@ -16,26 +22,13 @@ const crawl_content = async (article) => {
       mid: 0,
       idx: 0,
       sn: '',
-      stat_interval: 0,
-      crawled_at: article.crawled_at || new Date(),
-      title: article.title,
-      last_modified_at: article.last_modified_at,
-      stat_read_count: article.stat_read_count,
-      stat_like_count: article.stat_like_count,
-      stat_ret: 0,
-      stat_real_num: article.stat_real_num || article.stat_read_count,
-      stat_info_crawled_at: Date.now(),
-      stat_status: 3,
-      author: '',
       content: '',
+      author: '',
       copyright: false,
       source: null,
+      stat_content_crawled_status: 1,
+      stat_content_crawled_at: new Date(),
     };
-    if (doc.stat_read_count === 0) {
-      delete doc.stat_read_count;
-      delete doc.stat_like_count;
-    }
-    doc.stat_interval = doc.stat_info_crawled_at - doc.last_modified_at;
 
     let uri = article.uri;
     console.log(`[weixin] data uri -->`, uri);
@@ -51,7 +44,7 @@ const crawl_content = async (article) => {
     let options = {
       method: 'GET',
       uri,
-      timeout: 1000 * 60 * 2,
+      timeout: 1000 * 60,
       headers: {
         'Host': 'mp.weixin.qq.com',
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36',
@@ -92,7 +85,8 @@ const crawl_content = async (article) => {
     }
     if (body) {
       let $ = cheerio.load(body);
-      doc.author = $('em.rich_media_meta_text').text().trim();
+      let meta = $('em.rich_media_meta_text').text().trim() || '';
+      doc.author = meta.replace(/\d{4}\-\d{2}\-\d{2}/, '');
       doc.content = $('#js_content').text().trim();
       doc.copyright = $('#copyright_logo').length > 0 ? true : false;
       let name = $('.original_cell .flex_cell_primary').text().trim();
@@ -116,7 +110,13 @@ const crawl_content = async (article) => {
     return doc;
   } catch (error) {
     console.error(error);
+    console.error(`[weixin] crawl content error. sleep 10s restart.`);
+    await Util.sleep(10);
+    return await crawl_content(article);
   }
 }
 
 export { crawl_content }
+
+// crawl_content({uri: 'https://mp.weixin.qq.com/s?__biz=MjM5MjAxNDM4MA==&mid=2666161390&idx=3&sn=82a7336dc022f48efde6836c807d4030&scene=0#wechat_redirect'})
+// crawl_content({uri: 'https://mp.weixin.qq.com/s?__biz=MjM5MTI0NjQ0MA==&mid=2655816649&idx=1&sn=f2832d9532c89198303852767f0645c3&scene=0#wechat_redirect'})

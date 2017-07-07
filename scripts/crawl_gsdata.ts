@@ -1,14 +1,11 @@
-import * as url from 'url';
 import * as moment from 'moment';
-import * as rp from 'request-promise';
 
 import * as GSCrawler from '../crawlers/gsdata_crawler';
-import * as WXCrawler from '../crawlers/weixin_crawler';
 import * as Util from '../util';
-import Weixiner from '../models/weixiner';
 import Config from '../config';
+import Weixiner from '../models/weixiner';
 
-const OFFSET = 1000 * 60 * 10;
+const OFFSET = 1000 * 60 * 5;
 
 const start = async () => {
   try {
@@ -43,40 +40,18 @@ const start = async () => {
         });
     }
     if (weixiner) {
-      console.log(weixiner && weixiner.username);
+      console.log(`[gsdata] weixin username`, weixiner && weixiner.username);
       let resp = await GSCrawler.crawl_articles(weixiner);
       if (resp.status === 200) {
-        let promises = resp.articles.map(async (article) => await WXCrawler.crawl_content(article))
-        let docs = await Promise.all(promises);
-        docs = docs.map(x => {
+        let docs = resp.articles.map(x => {
           x.index_name = Config.es.index;
           x.type_name = Config.es.type;
           return x;
         })
         // console.log(docs);
         console.log(`[gsdata] docs length ${docs.length}`);
-
-        if (Config && Config.es && Config.es.uri) {
-          let {host} = url.parse(Config.es.uri, true);
-          // console.log(host);
-          let options = {
-            uri: `http://${host}/stq/api/v1/pa/weixin/add`,
-            method: 'POST',
-            body: docs,
-            json: true,
-            resolveWithFullResponse: true,
-          };
-          let respo = await rp(options);
-          while (true) {
-            console.log(respo.statusCode, respo.body);
-            if (respo.statusCode === 200 && respo.body['success'] === 'true') {
-              console.log(`[gsdata] weixin ${weixiner.username} crawl and store es over.`);
-              break;
-            }
-            console.error(`[gsdata] no es uri. crawl but not store. es down. sleep 10m restore.`);
-            await Util.sleep(60 * 10);
-            respo = await rp(options);
-          }
+        let status = await Util.bulk(docs);
+        if (status.success === 'true') {
           await Weixiner.findOneAndUpdate({
             _id: weixiner._id,
             gs_crawled_status: 3
@@ -87,15 +62,12 @@ const start = async () => {
               }
             });
           console.log(`[gsdata] weixin ${weixiner.username} mongo status update over.`);
-          respo = null;
-          options = null;
-          host = null;
         } else {
-          console.error(`[gsdata] no es uri. crawl but not store. no es uri.`);
+          console.log(`[gsdata] bulk status`, status);
         }
+        status = null;
         docs = null;
-        promises = null;
-      } else if (resp.status === 100) {
+      } else if (resp.status === 300) {
         console.error(resp);
         console.error(`[gsdata] weixin gsdata no data.`);
         await Weixiner.findOneAndUpdate({
@@ -113,6 +85,7 @@ const start = async () => {
         await Util.sleep(60 * 10);
       } else {
         console.error(`[gsdata] no catch error. need done.`);
+        console.error(`[gsdata] **************************`);
       }
       resp = null;
       weixiner = null;
@@ -131,17 +104,21 @@ const start = async () => {
   }
 }
 
+import * as mongoose from 'mongoose';
+import * as monitor from 'monitor-node';
+const connection = mongoose.createConnection(Config.monitor.uris);
+
 const floop = async () => {
   console.log(Config);
   while (true) {
     await start();
     console.log('[gsdata] sleep 20s restart.');
     console.log(moment().format('YYYY-MM-DD HH:mm:ss'));
-    // let task = await monitor.update(mongoose);
-    // console.log(task);
+    let task = await monitor.update(connection);
+    console.log(task);
     await Util.sleep(20);
   }
 }
 
-start();
-// floop();
+// start();
+floop();

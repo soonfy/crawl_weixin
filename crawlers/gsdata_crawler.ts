@@ -2,9 +2,18 @@ import * as rp from 'request-promise';
 import * as moment from 'moment';
 import * as cheerio from 'cheerio';
 import * as _ from 'lodash';
+import * as url from 'url';
 
 import * as Util from '../util';
 
+/**
+ * 
+ * @description crawl gsdata weixin article list
+ * input: weixiner -> username, gsdata id
+ * output: resp -> status, message, articles
+ * status: 0 -> init, 200 -> success, 300 -> no article, 301 - forbid, 400 - error
+ * 
+ */
 const crawl_articles = async (weixiner) => {
   try {
     let resp = {
@@ -15,9 +24,9 @@ const crawl_articles = async (weixiner) => {
     let {username, gs_id} = weixiner,
       sorts = [-1, -2, -3],
       referer = `http://www.gsdata.cn/rank/wxdetail?wxname=${gs_id}`;
+    console.log('[gsdata] check link -->', referer);
     for (let sort of sorts) {
       let uri = `http://www.gsdata.cn/rank/toparc?wxname=${gs_id}&wx=${username}&sort=${sort}`;
-      console.log('[gsdata] check link -->', referer);
       console.log('[gsdata] data link -->', uri);
       let options = {
         method: 'POST',
@@ -53,15 +62,39 @@ const crawl_articles = async (weixiner) => {
           stat_like_count = typeof stat_like_count === 'string' && stat_like_count.trim() === '10万+' ? 100001 : stat_like_count;
           stat_read_count = parseInt(stat_read_count) || 0;
           stat_like_count = parseInt(stat_like_count) || 0;
-          let temp = {
-            username: x.wx_name || username,
-            name: x.name || username,
-            uri: x.url || '',
-            title: x.title || '',
-            last_modified_at,
-            stat_read_count,
-            stat_like_count
+          let temp
+          if (stat_read_count > 0) {
+            temp = {
+              uri: x.url || '',
+              title: x.title || '',
+              last_modified_at,
+              crawled_at: new Date(),
+              stat_content_crawled_status: 0,
+              stat_info_crawled_status: 1,
+              stat_info_crawled_by: 1,
+              stat_info_crawled_at: new Date(),
+              stat_interval: Date.now() - last_modified_at.valueOf(),
+              stat_read_count,
+              stat_like_count,
+            }
+          } else {
+            temp = {
+              uri: x.url || '',
+              title: x.title || '',
+              last_modified_at,
+              crawled_at: new Date(),
+              stat_content_crawled_status: 0,
+              stat_info_crawled_status: 0,
+            }
           }
+          let {
+            query
+          } = url.parse(temp.uri, true);
+          temp.biz = query.__biz;
+          temp.mid = parseInt(query.mid);
+          temp.idx = parseInt(query.idx);
+          temp.sn = query.sn;
+          temp.id = `${temp.biz}:${temp.mid}:${temp.idx}`;
           return temp;
         })
         resp.status = 200;
@@ -73,7 +106,8 @@ const crawl_articles = async (weixiner) => {
         resp.message = 'gsdata forbid, sleep 10m restart.';
       } else if (data.error_msg.includes('暂无数据')) {
         // forbid ip
-        resp.status = 100;
+        console.log(data);
+        resp.status = 300;
         resp.message = 'weixin gsdata no data.';
       } else {
         console.log(data);
@@ -92,6 +126,13 @@ const crawl_articles = async (weixiner) => {
   }
 }
 
+/**
+ * 
+ * @description crawl gsdata weixin id
+ * input: weixiner -> username
+ * output: gsdata id
+ * 
+ */
 const crawl_id = async (weixiner) => {
   try {
     let gs_id;
