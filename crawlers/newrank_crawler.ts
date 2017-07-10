@@ -176,12 +176,12 @@ const crawl_id = async (weixiner) => {
       headers: {
         'Host': 'www.newrank.cn',
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36',
-        'Cookie': 'OUTFOX_SEARCH_USER_ID_NCOO=1347608136.4589365; UM_distinctid=15b8e463cb8222-0efbf70e44e5cf-1d386853-1aeaa0-15b8e463cb97f9; rmbuser=true; name=nr_7xn4h57or; token=B9C10357F9472688333A3D8CC652E269; useLoginAccount=true; Hm_lvt_a19fd7224d30e3c8a6558dcb38c4beed=1498701333,1499051705; Hm_lpvt_a19fd7224d30e3c8a6558dcb38c4beed=1499414985; CNZZDATA1253878005=548603740-1487559940-%7C1499412864',
+        'Cookie': 'OUTFOX_SEARCH_USER_ID_NCOO=1347608136.4589365; UM_distinctid=15b8e463cb8222-0efbf70e44e5cf-1d386853-1aeaa0-15b8e463cb97f9; ticket=gQHh7zwAAAAAAAAAAS5odHRwOi8vd2VpeGluLnFxLmNvbS9xLzAyclU1NzFLa0ljbTMxazJqdjFwMVYAAgTyRF9ZAwQQDgAA; rmbuser=true; name=nr_v0s9ax4xr; token=2C290C379751ADC20E9607F06EFBC7A2; useLoginAccount=true; CNZZDATA1253878005=548603740-1487559940-%7C1499412864; Hm_lvt_a19fd7224d30e3c8a6558dcb38c4beed=1498701333,1499051705; Hm_lpvt_a19fd7224d30e3c8a6558dcb38c4beed=1499416432',
         'Referer': referer,
       }
     }
     let body = await rp(options);
-    console.log(body);
+    // console.log(body);
     if (body.includes('自动屏蔽掉相关账号所有的访问权限') || body.includes('欢迎登录')) {
       console.log(body);
       console.log(`[newrank] update newrank id forbid. sleep 10m restart.`);

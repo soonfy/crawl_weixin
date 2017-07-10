@@ -1,3 +1,9 @@
+/**
+ *
+ *  crawl newrank weixin
+ *
+ */
+
 import * as moment from 'moment';
 
 import * as NRCrawler from '../crawlers/newrank_crawler';

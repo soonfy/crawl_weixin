@@ -1,3 +1,9 @@
+/**
+ *
+ *  crawl gsdata weixin
+ *
+ */
+
 import * as moment from 'moment';
 
 import * as GSCrawler from '../crawlers/gsdata_crawler';

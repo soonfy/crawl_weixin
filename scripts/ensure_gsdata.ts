@@ -1,3 +1,9 @@
+/**
+ *
+ *  ensure gsdata weixin id
+ *
+ */
+
 import * as url from 'url';
 import * as moment from 'moment';
 import * as rp from 'request-promise';

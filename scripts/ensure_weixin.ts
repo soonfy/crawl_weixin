@@ -1,3 +1,9 @@
+/**
+ *
+ *  ensure weixin/gsdata/newrank weixin id
+ *
+ */
+
 import * as Util from '../util';
 import * as SogouCrawler from '../crawlers/sogou_crawler';
 import * as GSCrawler from '../crawlers/gsdata_crawler';

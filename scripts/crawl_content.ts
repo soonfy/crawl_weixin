@@ -1,3 +1,9 @@
+/**
+ *
+ *  crawl weixin content
+ *
+ */
+
 import * as elasticsearch from 'elasticsearch';
 import * as moment from 'moment';
 
