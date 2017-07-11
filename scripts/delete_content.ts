@@ -22,15 +22,24 @@ const start = async () => {
       type: Config.es.type,
       size: 10,
       body: {
+        // "query": {
+        //   "bool": {
+        //     "must_not": [
+        //       {
+        //         "exists": {
+        //           "field": "mid"
+        //         }
+        //       }
+        //     ]
+        //   }
+        // }
         "query": {
           "bool": {
-            "must_not": [
-              {
-                "exists": {
-                  "field": "mid"
-                }
+            "filter": [{
+              "term": {
+                "sn": "undefined"
               }
-            ]
+            }]
           }
         }
       },
@@ -39,7 +48,7 @@ const start = async () => {
     };
     let result = await client.search(searchParams);
     // console.log(result.hits.hits);
-    console.log('hits', result.hits.hits[0]._id);
+    console.log('hits', result.hits.hits[0]);
     let promises = result.hits.hits.map(async (x) => {
       if (x._id.includes(':undefined') || x._id.includes('NaN')) {
         let deleteParams = {
