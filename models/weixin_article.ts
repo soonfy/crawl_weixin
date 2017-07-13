@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
-const weixinArticle = new Schema({
+const weixin_article = new Schema({
   _id: {
     type: String,
   },
@@ -44,7 +44,7 @@ const weixinArticle = new Schema({
     type: Object,
   },
   stat_content_crawled_status: {
-    // 0 - 没采集到内容, 1 - 采集到文章内容
+    // 0 - 没采集到内容, 1 - 采集到文章内容, -1 - 正在采集
     type: Number,
   },
   stat_content_crawled_at: {
@@ -55,7 +55,7 @@ const weixinArticle = new Schema({
 
   // stat read
   stat_info_crawled_status: {
-    // 0 - 没采集到阅读量, 1 - 采集到文章阅读量
+    // 0 - 没采集到阅读量, 1 - 采集到文章阅读量, -1 - 正在采集
     type: Number,
   },
   stat_info_crawled_by: {
@@ -85,3 +85,5 @@ const weixinArticle = new Schema({
   },
 
 })
+
+export default mongoose.model('WEIXINARTICLE', weixin_article, 'weixin_articles');

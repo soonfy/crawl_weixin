@@ -37,7 +37,8 @@ const start = async () => {
       if (user && user._id) {
         console.log(user);
         let _weixin = await Weixiner.findOne({ _id: user._id });
-        if (!_weixin) {
+        console.log(_weixin);
+        if (_weixin) {
           console.log('weixin already exist, update.');
           _weixin = await Weixiner.findByIdAndUpdate(user._id, { $set: user }, { new: true });
           console.log(_weixin);
@@ -57,18 +58,18 @@ const start = async () => {
             user.gs_crawled_status = -1;
             user.gs_crawled_at = new Date();
           }
-          let nr_id = await NRCrawler.crawl_id(user);
-          console.log(`newrank id`, nr_id);
-          if (nr_id) {
-            user.nr_id = nr_id;
-            user.nr_crawled_status = 2;
-            user.nr_crawled_at = Date.now() - OFFSET;
-          } else {
-            user.nr_id = '';
-            user.nr_crawled_status = -1;
-            user.nr_crawled_at = new Date();
-          }
-          _weixin = await Weixiner.findByIdAndUpdate(user._id, { $set: user }, { new: true });
+          // let nr_id = await NRCrawler.crawl_id(user);
+          // console.log(`newrank id`, nr_id);
+          // if (nr_id) {
+          //   user.nr_id = nr_id;
+          //   user.nr_crawled_status = 2;
+          //   user.nr_crawled_at = Date.now() - OFFSET;
+          // } else {
+          //   user.nr_id = '';
+          //   user.nr_crawled_status = -1;
+          //   user.nr_crawled_at = new Date();
+          // }
+          _weixin = await Weixiner.findByIdAndUpdate(user._id, { $set: user }, { upsert: true, new: true });
         }
         console.log(_weixin);
         console.log('ensure weixin success.');

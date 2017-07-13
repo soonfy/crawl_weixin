@@ -10,12 +10,13 @@ import * as GSCrawler from '../crawlers/gsdata_crawler';
 import * as Util from '../util';
 import Config from '../config';
 import Weixiner from '../models/weixiner';
+import WeixinerArticle from '../models/weixin_article';
 
 const OFFSET = 1000 * 60 * 5;
 
 const start = async () => {
   try {
-    // let weixiner = { username: 'hbs022-25803298', gs_id: 'aQGBJDzSMJDqIiynLgT5I211ODAzMjk4' };
+    // let weixiner = { username: 'rmrbwx', gs_id: 'cQmB1DySYJnqdi4n' };
     let weixiner = await Weixiner.findOneAndUpdate({
       gs_crawled_status: 3,
       gs_crawled_at: {
@@ -33,7 +34,7 @@ const start = async () => {
       });
     if (!weixiner) {
       weixiner = await Weixiner.findOneAndUpdate({
-        gs_crawled_status: 2
+        gs_crawled_status: 2,
       }, {
           $set: {
             gs_crawled_status: 3,
@@ -49,16 +50,40 @@ const start = async () => {
       console.log(`[gsdata] weixin username`, weixiner && weixiner.username);
       let resp = await GSCrawler.crawl_articles(weixiner);
       if (resp.status === 200) {
-        let docs = resp.articles.map(x => {
-          x.index_name = Config.es.index;
-          x.type_name = Config.es.type;
-          return x;
-        })
-        // console.log(docs);
-        console.log(`[gsdata] docs length ${docs.length}`);
-        let status = await Util.bulk(docs);
-        if (status.success === 'true') {
-          await Weixiner.findOneAndUpdate({
+        // push es
+        // let docs = resp.articles.map(x => {
+        //   x.index_name = Config.es.index;
+        //   x.type_name = Config.es.type;
+        //   return x;
+        // })
+        // // console.log(docs);
+        // console.log(`[gsdata] docs length ${docs.length}`);
+        // let status = await Util.bulk(docs);
+        // if (status.success === 'true') {
+        //   await Weixiner.findOneAndUpdate({
+        //     _id: weixiner._id,
+        //     gs_crawled_status: 3
+        //   }, {
+        //       $set: {
+        //         gs_crawled_status: 2,
+        //         gs_crawled_at: new Date()
+        //       }
+        //     });
+        //   console.log(`[gsdata] weixin ${weixiner.username} mongo status update over.`);
+        // } else {
+        //   console.log(`[gsdata] bulk status`, status);
+        // }
+
+        // store mongo
+        console.log(resp.articles.length);
+        for(let article of resp.articles){
+          article._id = article.id;
+          let _article = await WeixinerArticle.findOne({ _id: article._id, stat_content_crawled_status: 1 });
+          if (!_article) {
+            _article = await WeixinerArticle.findOneAndUpdate({ _id: article._id }, { $set: article }, { upsert: true, new: true });
+          }
+        }
+        await Weixiner.findOneAndUpdate({
             _id: weixiner._id,
             gs_crawled_status: 3
           }, {
@@ -66,13 +91,8 @@ const start = async () => {
                 gs_crawled_status: 2,
                 gs_crawled_at: new Date()
               }
-            });
-          console.log(`[gsdata] weixin ${weixiner.username} mongo status update over.`);
-        } else {
-          console.log(`[gsdata] bulk status`, status);
-        }
-        status = null;
-        docs = null;
+          });
+        console.log(`[gsdata] weixin crawl over.`);
       } else if (resp.status === 300) {
         console.error(resp);
         console.error(`[gsdata] weixin gsdata no data.`);
