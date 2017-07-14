@@ -38,8 +38,8 @@ const bulk = async (docs) => {
         docs = [docs];
       }
       docs = docs.map(x => {
-        x.index_name = Config.es.index;
-        x.type_name = Config.es.type;
+        x.index_name = Config.es.index || 'weixin_articles_and_weixiners';
+        x.type_name = Config.es.type || 'weixin_articles_and_weixiner';
         return x;
       });
       console.log(docs);

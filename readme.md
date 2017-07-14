@@ -8,6 +8,7 @@ config.json
     "uris": [mongouri]
   }
 }
+// 或者传递3个参数，mongo uri, monitor uri, es uri
 ```
 
 ## weixin crawler status
