@@ -14,6 +14,10 @@ try {
     Config = require('./config.json');
   } catch (error) {
     console.error(`配置文件 config.json 路径没找到, 传递参数。`);
+    if (process.argv.length < 4) {
+      console.error(`配置文件 config.json 路径没找到, 同时未传递参数。mongo uri, monitor uri, es uri`);
+      process.exit();
+    }
     Config = {
       db: {
         uris: process.argv[2].trim(),
@@ -25,7 +29,6 @@ try {
         uri: process.argv[4].trim(),
       },
     }
-    // process.exit();
   }
 }
 // console.log(Config);
